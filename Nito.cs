@@ -1,20 +1,12 @@
-﻿namespace ATAS.Indicators.Technical
-{
-    using System.ComponentModel.DataAnnotations;
-    using System.Runtime.Intrinsics.X86;
-    using System.Windows.Media;
-    using ATAS.Indicators;
-    using OFT.Rendering.Settings;
-    using Utils.Common;
-    using Utils.Common.Logging;
-    using System;
-    using System.ComponentModel;
-    using System.Runtime.CompilerServices;
-    using ATAS.Indicators.Technical.Properties;
-    using OFT.Attributes;
-    using Utils.Common.Localization;
+﻿using System.Windows.Media;
+using ATAS.Indicators;
+using OFT.Rendering.Settings;
+using Utils.Common.Logging;
 
-    public class Nito : Indicator
+namespace ATAS.Indicators.Technical
+{
+
+    public class NitoBare : Indicator
     {
         private ValueDataSeries MiddleBand = new ValueDataSeries("Middleband")
         {
@@ -37,8 +29,6 @@
             Color = Colors.Red
         };
 
-        private readonly WMA Wma = new WMA();
-
         // Using the premade ATR class like this is what I want to do but using Atr.Calculate() errors
         // with: ATAS.Indicators.Technical.Nito OnCalculate error Specified method is not supported.
         //private readonly ATR Atr = new ATR();
@@ -46,9 +36,11 @@
         // so instead I store the raw atr data here and do the logic inline, that doesn't error
         // why? Probably because a new calculation requires access to results of previous calculations, stored here in AtrSeries,
         // and it freaks out when that data doesn't exist when you call .Calculate ???
-        // Maybe, that's what I assume is happening. Pity the class way doesn't work, would be so much cleaner/better.
+        // Maybe. That's what I assume is happening. Pity the class way doesn't work, would be so much cleaner/better.
         private ValueDataSeries AtrSeries = new ValueDataSeries("ATR");
         private ValueDataSeries MultipledAtrSeries = new ValueDataSeries("MultipliedATR");
+
+        private readonly WMA Wma = new WMA();
 
         public int WmaPeriod
         {
@@ -63,42 +55,43 @@
             }
         }
 
+        private int _atrperiod = 10;
         public int AtrPeriod
         {
             get
             {
-                return this.AtrPeriod;
+                return this._atrperiod;
             }
             set
             {
-                this.AtrPeriod = value;
+                this._atrperiod = value;
                 RecalculateValues();
             }
         }
 
+        private decimal _atrmultiplier = 1.0M;
         public decimal AtrMultiplier
         {
             get
             {
-                return this.AtrMultiplier;
+                return this._atrmultiplier;
             }
             set
             {
-                this.AtrMultiplier = value;
+                this._atrmultiplier = value;
                 RecalculateValues();
             }
         }
 
-        public Nito()
+        public NitoBare()
         {
             // location to display this indicator, on the panel where the bars are (the chart) or a new panel
             Panel = IndicatorDataProvider.CandlesPanel;
 
             this.WmaPeriod = 20;
             this.AtrPeriod = 20;
-            this.AtrMultiplier = 5m;
+            this.AtrMultiplier = 5.0M;
 
-            // add upper and lower bands
             base.DataSeries.Add(MiddleBand);
             base.DataSeries.Add(UpperBand);
             base.DataSeries.Add(LowerBand);
@@ -108,11 +101,12 @@
         {
             decimal wma = this.Wma.Calculate(bar, value);
 
+            #region ATR
             // this is how I want to do it, but it causes errors that have an unknown reason since copying code works fine
             //decimal atr = this.Atr.Calculate(bar, value);
 
             if (bar == 0 && ChartInfo != null)
-            ((ValueDataSeries)DataSeries[0]).StringFormat = ChartInfo.StringFormat;
+                ((ValueDataSeries)DataSeries[0]).StringFormat = ChartInfo.StringFormat;
 
             var candle = GetCandle(bar);
             var high0 = candle.High;
@@ -127,6 +121,7 @@
                 this.AtrSeries[bar] = ((Math.Min(CurrentBar + 1, this.AtrPeriod) - 1) * this.AtrSeries[bar - 1] + trueRange) / Math.Min(CurrentBar + 1, this.AtrPeriod);
                 this.MultipledAtrSeries[bar] = this.AtrMultiplier * this.AtrSeries[bar];
             }
+            #endregion
 
             this.MiddleBand[bar] = wma;
             this.UpperBand[bar] = wma + this.MultipledAtrSeries[bar];
@@ -135,7 +130,7 @@
 
         protected override void OnInitialize()
         {
-            this.LogInfo("BANDS PROBEREN 56");
+            this.LogInfo("Bands proberen 1");
         }
     }
 }
