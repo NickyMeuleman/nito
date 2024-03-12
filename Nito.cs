@@ -1,12 +1,15 @@
-﻿using System.Windows.Media;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Windows.Media;
 using ATAS.Indicators;
+using ATAS.Indicators.Technical.Properties;
 using OFT.Rendering.Settings;
 using Utils.Common.Logging;
 
 namespace ATAS.Indicators.Technical
 {
-
-    public class NitoBare : Indicator
+    [DisplayName("Nito - Nicky Tony")]
+    public class Nito : Indicator
     {
         private ValueDataSeries MiddleBand = new ValueDataSeries("Middleband")
         {
@@ -42,6 +45,8 @@ namespace ATAS.Indicators.Technical
 
         private readonly WMA Wma = new WMA();
 
+        [Display(Name = "Period", GroupName = "WMA - Weighted Moving Average", Order = 20)]
+        [Range(1, 10000)]
         public int WmaPeriod
         {
             get
@@ -56,6 +61,9 @@ namespace ATAS.Indicators.Technical
         }
 
         private int _atrperiod = 10;
+
+        [Display(Name = "Period", GroupName = "ATR - Average True Range", Order = 20)]
+        [Range(1, 10000)]
         public int AtrPeriod
         {
             get
@@ -70,6 +78,9 @@ namespace ATAS.Indicators.Technical
         }
 
         private decimal _atrmultiplier = 1.0M;
+
+        [Display(Name = "Multiplier", GroupName = "ATR - Average True Range", Order = 20)]
+        [Range(0.0000001, 10000000)]
         public decimal AtrMultiplier
         {
             get
@@ -83,7 +94,7 @@ namespace ATAS.Indicators.Technical
             }
         }
 
-        public NitoBare()
+        public Nito()
         {
             // location to display this indicator, on the panel where the bars are (the chart) or a new panel
             Panel = IndicatorDataProvider.CandlesPanel;
@@ -130,7 +141,7 @@ namespace ATAS.Indicators.Technical
 
         protected override void OnInitialize()
         {
-            this.LogInfo("Bands proberen 1");
+            this.LogInfo("Bands proberen 10");
         }
     }
 }
