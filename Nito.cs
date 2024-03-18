@@ -43,25 +43,26 @@ namespace ATAS.Indicators.Technical
         private ValueDataSeries AtrSeries = new ValueDataSeries("ATR");
         private ValueDataSeries MultipledAtrSeries = new ValueDataSeries("MultipliedATR");
 
-        private readonly VWMA Vwma = new VWMA();
+        private SMA VwmaHelperSma1 = new SMA();
+        private SMA VwmaHelperSma2 = new SMA();
 
+        private int _vwmaperiod = 10;
         [Display(Name = "Period", GroupName = "VWMA - Volume Weighted Moving Average", Order = 20)]
         [Range(1, 10000)]
         public int VwmaPeriod
         {
             get
             {
-                return this.Vwma.Period;
+                return this._vwmaperiod;
             }
             set
             {
-                this.Vwma.Period = value;
+                this._vwmaperiod = value;
                 RecalculateValues();
             }
         }
 
         private int _atrperiod = 10;
-
         [Display(Name = "Period", GroupName = "ATR - Average True Range", Order = 20)]
         [Range(1, 10000)]
         public int AtrPeriod
@@ -78,7 +79,6 @@ namespace ATAS.Indicators.Technical
         }
 
         private decimal _atrmultiplier = 1.0M;
-
         [Display(Name = "Multiplier", GroupName = "ATR - Average True Range", Order = 20)]
         [Range(0.0000001, 10000000)]
         public decimal AtrMultiplier
@@ -103,14 +103,23 @@ namespace ATAS.Indicators.Technical
             this.AtrPeriod = 20;
             this.AtrMultiplier = 5.0M;
 
-            base.DataSeries.Add(MiddleBand);
+            DataSeries[0] = MiddleBand;
             base.DataSeries.Add(UpperBand);
             base.DataSeries.Add(LowerBand);
         }
 
         protected override void OnCalculate(int bar, decimal value)
         {
-            decimal vwma = this.Vwma.Calculate(bar, value);
+            IndicatorCandle candle = GetCandle(bar);
+
+            #region VWMA
+
+            decimal vwmaHelperTop = VwmaHelperSma1.Calculate(bar, value * candle.Volume);
+            decimal vwmaHelperBottom = VwmaHelperSma2.Calculate(bar, candle.Volume);
+
+            decimal vwma = vwmaHelperTop / vwmaHelperBottom;
+
+            #endregion
 
             #region ATR
             // this is how I want to do it, but it causes errors that have an unknown reason since copying code works fine
@@ -119,7 +128,6 @@ namespace ATAS.Indicators.Technical
             if (bar == 0 && ChartInfo != null)
                 ((ValueDataSeries)DataSeries[0]).StringFormat = ChartInfo.StringFormat;
 
-            var candle = GetCandle(bar);
             var high0 = candle.High;
             var low0 = candle.Low;
 
@@ -132,6 +140,7 @@ namespace ATAS.Indicators.Technical
                 this.AtrSeries[bar] = ((Math.Min(CurrentBar + 1, this.AtrPeriod) - 1) * this.AtrSeries[bar - 1] + trueRange) / Math.Min(CurrentBar + 1, this.AtrPeriod);
                 this.MultipledAtrSeries[bar] = this.AtrMultiplier * this.AtrSeries[bar];
             }
+
             #endregion
 
             this.MiddleBand[bar] = vwma;
@@ -141,7 +150,7 @@ namespace ATAS.Indicators.Technical
 
         protected override void OnInitialize()
         {
-            this.LogInfo("vwma ipv wma");
+            this.LogInfo("vwma ipv wma inline (yuck, I want to use the Indicator class I made)");
         }
     }
 }
