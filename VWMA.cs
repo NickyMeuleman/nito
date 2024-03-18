@@ -14,7 +14,7 @@ namespace ATAS.Indicators.Technical
             Color = Colors.Coral
         };
 
-        public int VwmaPeriod
+        public int Period
         {
             get
             {
@@ -32,7 +32,7 @@ namespace ATAS.Indicators.Technical
         private SMA Sma2 = new SMA();
 
         public VWMA() {
-            this.VwmaPeriod = 10;
+            this.Period = 10;
 
             DataSeries[0] = VwmaSeries;
         }

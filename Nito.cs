@@ -43,19 +43,19 @@ namespace ATAS.Indicators.Technical
         private ValueDataSeries AtrSeries = new ValueDataSeries("ATR");
         private ValueDataSeries MultipledAtrSeries = new ValueDataSeries("MultipliedATR");
 
-        private readonly WMA Wma = new WMA();
+        private readonly VWMA Vwma = new VWMA();
 
-        [Display(Name = "Period", GroupName = "WMA - Weighted Moving Average", Order = 20)]
+        [Display(Name = "Period", GroupName = "VWMA - Volume Weighted Moving Average", Order = 20)]
         [Range(1, 10000)]
-        public int WmaPeriod
+        public int VwmaPeriod
         {
             get
             {
-                return this.Wma.Period;
+                return this.Vwma.Period;
             }
             set
             {
-                this.Wma.Period = value;
+                this.Vwma.Period = value;
                 RecalculateValues();
             }
         }
@@ -99,7 +99,7 @@ namespace ATAS.Indicators.Technical
             // location to display this indicator, on the panel where the bars are (the chart) or a new panel
             Panel = IndicatorDataProvider.CandlesPanel;
 
-            this.WmaPeriod = 20;
+            this.VwmaPeriod = 20;
             this.AtrPeriod = 20;
             this.AtrMultiplier = 5.0M;
 
@@ -110,7 +110,7 @@ namespace ATAS.Indicators.Technical
 
         protected override void OnCalculate(int bar, decimal value)
         {
-            decimal wma = this.Wma.Calculate(bar, value);
+            decimal vwma = this.Vwma.Calculate(bar, value);
 
             #region ATR
             // this is how I want to do it, but it causes errors that have an unknown reason since copying code works fine
@@ -134,14 +134,14 @@ namespace ATAS.Indicators.Technical
             }
             #endregion
 
-            this.MiddleBand[bar] = wma;
-            this.UpperBand[bar] = wma + this.MultipledAtrSeries[bar];
-            this.LowerBand[bar] = wma - this.MultipledAtrSeries[bar];
+            this.MiddleBand[bar] = vwma;
+            this.UpperBand[bar] = vwma + this.MultipledAtrSeries[bar];
+            this.LowerBand[bar] = vwma - this.MultipledAtrSeries[bar];
         }
 
         protected override void OnInitialize()
         {
-            this.LogInfo("Bands proberen 10");
+            this.LogInfo("vwma ipv wma");
         }
     }
 }
